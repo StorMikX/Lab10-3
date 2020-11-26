@@ -12,6 +12,14 @@ def get_token():
         line = file.readline()
     return line
 
+def check_in_db(user_id, data):
+    dict2 = {'user_id': user_id}
+    data1 = collection.find_one(dict2)
+    if data1:
+        print('Пользователь есть в базе данных')
+    else:
+        collection.insert_one(data)
+        print('Пользователь добавлен в БД')
 
 def get_user_data(user_id):
     res = requests.get(BASE_URL + f'users.get?user_ids={user_id}&fields=city,  universities&v=5.52&access_token={token}')
@@ -20,7 +28,6 @@ def get_user_data(user_id):
             resp = res.json()
             if 'response' in resp:
                 for i in range(len(resp['response'])):
-                    users = []
                     data = {}
                     res = resp['response'][i]
                     data.update(
@@ -43,8 +50,7 @@ def get_user_data(user_id):
 
                     friends_id, count_friends = get_user_friends(f"{res['id']}")
                     data.update({'friends': friends_id})
-                    users.append(data)
-                    collection.insert_many(users)    
+                    check_in_db(user_id, data) 
                 return friends_id, count_friends
             else:
                 print('\n', resp['error']['error_msg'])
